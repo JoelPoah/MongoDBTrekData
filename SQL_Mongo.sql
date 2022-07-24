@@ -1,15 +1,19 @@
 
+use BikeSalesMinions
 /* Get table data in JSON format */
 
--- Get Unsold
-select p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price from Production.products as p ,production.brands as b , Production.categories as c 
-where p.product_id not in (select s.product_id from Sales.order_items as s) and p.brand_id = b.brand_id
+-- Get Unsold 49
+select distinct p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price
+from Production.products as p ,production.brands as b , Production.categories as c 
+where p.product_id not in (select s.product_id from Sales.order_items as s
+inner join sales.orders o on o.order_id = s.order_id 
+where o.order_status=4) and p.brand_id = b.brand_id
 and p.category_id = c.category_id
         FOR JSON PATH, 
         INCLUDE_NULL_VALUES
 GO
 
--- Zero Stock got huge issues
+-- Zero Stock 8
 select p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price from production.products as p
 ,Production.brands as b , Production.categories as c 
 WHERE p.product_id not in (select product_id from Production.stocks) and b.brand_id = p.brand_id 
@@ -19,7 +23,7 @@ Production.stocks group by product_id having SUM(Quantity) = 0)
         INCLUDE_NULL_VALUES
 
 GO
--- Finding in Stock got issues
+-- Finding in Stock 939
 select distinct p.product_id ,s.store_id,s.quantity from production.products as p
 inner join Production.stocks as s on s.product_id = p.product_id
 WHERE p.product_id in (select product_id from Production.stocks) and p.product_id in (select product_id from
@@ -29,7 +33,7 @@ Production.stocks group by product_id having SUM(Quantity) > 0)
 
 
 
-
+ss
 /** MONGO CODE **/
 If want to drop database
 > use Bikes; 

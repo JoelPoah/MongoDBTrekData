@@ -12,7 +12,7 @@ GO
 
 ```sql
 -- Zero Stock table
-select p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price from production.products as p
+select p.product_id,p.product_name,b.brand_name,c.category_name,p.model_ar,p.list_price from production.products as p
 ,Production.brands as b , Production.categories as c 
 WHERE p.product_id not in (select product_id from Production.stocks) and b.brand_id = p.brand_id 
 and c.category_id=p.category_id and p.product_id not in (select product_id from
