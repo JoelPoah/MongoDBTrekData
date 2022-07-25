@@ -2,7 +2,7 @@
 use BikeSalesMinions
 /* Get table data in JSON format */
 
--- Get Unsold 49
+-- Get Unsold 43
 select distinct p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price
 from Production.products as p ,production.brands as b , Production.categories as c 
 where p.product_id not in (select s.product_id from Sales.order_items as s
