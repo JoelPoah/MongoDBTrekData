@@ -14,6 +14,7 @@ and p.category_id = c.category_id
 GO
 
 -- Zero Stock 8
+use BikeSalesMinions
 select p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price from production.products as p
 ,Production.brands as b , Production.categories as c 
 WHERE p.product_id not in (select product_id from Production.stocks) and b.brand_id = p.brand_id 
@@ -26,7 +27,7 @@ GO
 -- Finding in Stock 939
 select distinct p.product_id ,s.store_id,s.quantity from production.products as p
 inner join Production.stocks as s on s.product_id = p.product_id
-WHERE p.product_id in (select product_id from Production.stocks) and p.product_id in (select product_id from
+WHERE p.product_id in (select product_id from
 Production.stocks group by product_id having SUM(Quantity) > 0)
         FOR JSON PATH, 
         INCLUDE_NULL_VALUES
@@ -67,13 +68,14 @@ db.Stock.count() --939
 
 Query 1:
 find bike names from ZeroStock where list_price is less than $2000 and have category_name = "Road Bikes" :
-db.ZeroStock.find( { list_price: { $lt: 2000 }, category_name: "Road Bikes"},{_id:0,product_name:1,list_price:1} )
+db.ZeroStock.find( { list_price: { $lt: 2000 }, category_name: "Road Bikes"},{_id:0,product_name:1,list_price:1})
+-- 3 count
 
 Query 2: 
 language : MongoDB
 find unduplicated category_name from collection Unsold
-db.UnSold.distinct("category_name")
-db.UnSold.distinct("brand_name")
+db.UnSold.distinct("category_name") --4
+db.UnSold.distinct("brand_name") -- 3
 
 
 Query 3: 
@@ -81,7 +83,7 @@ language : MongoDB
 
 use look up to join ZeroStock and UnSold and find distinct category_name and brand_name
 
-
+-- 6 
 db.UnSold.aggregate([{$lookup: {from: "ZeroStock", localField: "category_name", 
 foreignField: "category_name", as: "UnSold"}},
 {$group: {_id: {category_name: "$category_name", brand_name: "$brand_name"}}}])
@@ -113,6 +115,7 @@ db.ZeroStock.aggregate(
 Query 4:
 language : MongoDB
 use lookup to join unsold and stock collections
+--24 count 
 db.UnSold.aggregate([
     { $lookup: { from: "Stock", localField: "product_id", foreignField: "product_id", as: "stock" } },
     { $match: { "stock.quantity": { $gt: 0 } } },
@@ -123,7 +126,7 @@ db.UnSold.aggregate([
 /** I assume this query is to get those products that are really not doing well**/
 
 Query 5:
-
+-- 23 count
 language : MongoDB
 use lookup to join unsold and stock collections and sum stock.quantity
 db.UnSold.aggregate([
@@ -137,6 +140,7 @@ db.UnSold.aggregate([
 
 Query 6:
 language : MongoDB
+--count 2
 Find all products that are in ZeroStock but not in UnSold collections.
 db.ZeroStock.aggregate([
     { $lookup: { from: "UnSold", localField: "product_id", foreignField: "product_id", as: "UnSold" } },
