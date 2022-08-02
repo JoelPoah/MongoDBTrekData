@@ -3,15 +3,18 @@ use BikeSalesMinions
 /* Get table data in JSON format */
 
 -- Get Unsold 43
+
 select distinct p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price
 from Production.products as p ,production.brands as b , Production.categories as c 
 where p.product_id not in (select s.product_id from Sales.order_items as s
 inner join sales.orders o on o.order_id = s.order_id 
-where o.order_status=4) and p.brand_id = b.brand_id
+where o.order_status=4) and p.brand_id = b.brand_id and p.product_id not in (select s.product_id from Sales.order_items as s)
 and p.category_id = c.category_id
         FOR JSON PATH, 
         INCLUDE_NULL_VALUES
 GO
+
+
 
 -- Zero Stock 8
 use BikeSalesMinions
@@ -73,7 +76,16 @@ db.ZeroStock.find( { list_price: { $lt: 2000 }, category_name: "Road Bikes"},{_i
 
 Query 2: 
 language : MongoDB
-find unduplicated category_name from collection Unsold
+find unduplicated category_name,and brand_name from collection Unsold separately using addtoset
+db.UnSold.aggregate([
+        {$group:{
+                _id:"category and brand", "category": {$addToSet :"$category_name"},
+                          "brand_name":{$addToSet :"$brand_name"}
+                }
+        }
+        ]).pretty()
+
+
 db.UnSold.distinct("category_name") --4
 db.UnSold.distinct("brand_name") -- 3
 

@@ -1,12 +1,13 @@
 
 /* Get table data in JSON format in mssql */
 ```sql
--- Get Unsold
+-- Get Unsold 14
 select distinct p.product_id,p.product_name,b.brand_name,c.category_name,p.model_year,p.list_price
 from Production.products as p ,production.brands as b , Production.categories as c 
 where p.product_id not in (select s.product_id from Sales.order_items as s
 inner join sales.orders o on o.order_id = s.order_id 
-where o.order_status=4) and p.brand_id = b.brand_id
+where o.order_status=4) and p.brand_id = b.brand_id and p.product_id not in 
+(select s.product_id from Sales.order_items as s)
 and p.category_id = c.category_id
         FOR JSON PATH, 
         INCLUDE_NULL_VALUES
@@ -90,6 +91,11 @@ db.UnSold.distinct("category_name")
 db.UnSold.distinct("brand_name")
 ```
 
+```
+db.UnSold.aggregate([
+        {$addtoset:{_id:{category_name:"$category_name",brand_name:"$brand_name"}}}
+                   ])
+```
 Query 3: 
 language : MongoDB
 
