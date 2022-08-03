@@ -126,29 +126,41 @@ db.ZeroStock.aggregate(
 
 Query 4:
 language : MongoDB
-use lookup to join unsold and stock collections
---24 count 
+use lookup to join unsold and stock collections and show product_id with stock
+
+
+--8 supposed
 db.UnSold.aggregate([
     { $lookup: { from: "Stock", localField: "product_id", foreignField: "product_id", as: "stock" } },
     { $match: { "stock.quantity": { $gt: 0 } } },
-    { $unwind:'$stock'},
-    { $project: { _id:0,product_id: 1, product_name: 1, brand_name: 1, category_name: 1, model_year: 1, list_price: 1, "stock.store_id":1,"stock.quantity": 1} }
+    { $project: { _id:0,product_id: 1, product_name: 1, brand_name: 1, category_name: 1, model_year: 1, list_price: 1} }
 ]).pretty()
 
+-- Get by store or sum 
 /** I assume this query is to get those products that are really not doing well**/
 
 Query 5:
+-- 8 supposed with total qty 
 -- 23 count
 language : MongoDB
 use lookup to join unsold and stock collections and sum stock.quantity
+-- db.UnSold.aggregate([
+--     { $lookup: { from: "Stock", localField: "product_id", foreignField: "product_id", as: "stock" } },
+--     { $match: { "stock.quantity": { $gt: 0 } } },
+--     { $unwind:'$stock'},
+--     { $group: { _id: { product_id: "$product_id", product_name: "$product_name",
+--      brand_name: "$brand_name", category_name: "$category_name", model_year: "$model_year", list_price: "$list_price" , TotalQty: { $sum: "$stock.quantity" }} } },
+--     { $sort: { TotalQty: -1 } }
+-- ]).pretty()
+
+
 db.UnSold.aggregate([
     { $lookup: { from: "Stock", localField: "product_id", foreignField: "product_id", as: "stock" } },
     { $match: { "stock.quantity": { $gt: 0 } } },
-    { $unwind:'$stock'},
-    { $group: { _id: { product_id: "$product_id", product_name: "$product_name", brand_name: "$brand_name", category_name: "$category_name", model_year: "$model_year", list_price: "$list_price" , TotalQty: { $sum: "$stock.quantity" }} } },
+    { $group: { _id: { product_id: "$product_id", product_name: "$product_name",
+     brand_name: "$brand_name", category_name: "$category_name", model_year: "$model_year", list_price: "$list_price" , TotalQty: { $sum: "$stock.quantity" }} } },
     { $sort: { TotalQty: -1 } }
 ]).pretty()
-
 
 Query 6:
 language : MongoDB
